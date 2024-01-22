@@ -1,0 +1,95 @@
+{
+  "Category": "Physics",
+  "Results": [
+    {
+      "Number": 1,
+      "Name": "Albert Einstein",
+      "BirthYear": 1879,
+      "DeathYear": 1955,
+      "HomeCountry": "Germany",
+      "Achievements": "Developed the theory of relativity (Special and General), explained the photoelectric effect, and made significant contributions to quantum mechanics.",
+      "Keywords": ["Albert Einstein", "Physicist", "Theory of Relativity", "Quantum Mechanics", "German"]
+    },
+    {
+      "Number": 2,
+      "Name": "Isaac Newton",
+      "BirthYear": 1643,
+      "DeathYear": 1727,
+      "HomeCountry": "England",
+      "Achievements": "Laid the foundation for classical mechanics with the laws of motion and the law of universal gravitation.",
+      "Keywords": ["Isaac Newton", "Physicist", "Laws of Motion", "Universal Gravitation", "English"]
+    },
+    {
+      "Number": 3,
+      "Name": "Niels Bohr",
+      "BirthYear": 1885,
+      "DeathYear": 1962,
+      "HomeCountry": "Denmark",
+      "Achievements": "Made significant contributions to the understanding of atomic structure and quantum theory.",
+      "Keywords": ["Niels Bohr", "Physicist", "Atomic Structure", "Quantum Theory", "Danish"]
+    },
+    {
+      "Number": 4,
+      "Name": "Galileo Galilei",
+      "BirthYear": 1564,
+      "DeathYear": 1642,
+      "HomeCountry": "Italy",
+      "Achievements": "Improved the telescope, observed celestial bodies, and championed the heliocentric model of the solar system.",
+      "Keywords": ["Galileo Galilei", "Astronomer", "Telescope", "Heliocentric Model", "Italian"]
+    },
+    {
+      "Number": 5,
+      "Name": "Max Planck",
+      "BirthYear": 1858,
+      "DeathYear": 1947,
+      "HomeCountry": "Germany",
+      "Achievements": "Formulated quantum theory and introduced the concept of quantized energy.",
+      "Keywords": ["Max Planck", "Physicist", "Quantum Theory", "Quantized Energy", "German"]
+    },
+    {
+      "Number": 6,
+      "Name": "Richard Feynman",
+      "BirthYear": 1918,
+      "DeathYear": 1988,
+      "HomeCountry": "United States",
+      "Achievements": "Contributed to quantum mechanics and quantum electrodynamics, awarded the Nobel Prize in Physics.",
+      "Keywords": ["Richard Feynman", "Physicist", "Quantum Mechanics", "Quantum Electrodynamics", "American"]
+    },
+    {
+      "Number": 7,
+      "Name": "Marie Curie",
+      "BirthYear": 1867,
+      "DeathYear": 1934,
+      "HomeCountry": "Poland",
+      "Achievements": "Pioneering research on radioactivity, discovered radium and polonium, and won two Nobel Prizes (Physics and Chemistry).",
+      "Keywords": ["Marie Curie", "Physicist", "Radioactivity", "Radium", "Polonium", "Polish"]
+    },
+    {
+      "Number": 8,
+      "Name": "Erwin Schrödinger",
+      "BirthYear": 1887,
+      "DeathYear": 1961,
+      "HomeCountry": "Austria",
+      "Achievements": "Developed the Schrödinger equation, a foundational equation in quantum mechanics.",
+      "Keywords": ["Erwin Schrödinger", "Physicist", "Schrödinger Equation", "Quantum Mechanics", "Austrian"]
+    },
+    {
+      "Number": 9,
+      "Name": "Stephen Hawking",
+      "BirthYear": 1942,
+      "DeathYear": 2018,
+      "HomeCountry": "United Kingdom",
+      "Achievements": "Worked on black holes, Hawking radiation, and the nature of the universe despite battling ALS.",
+      "Keywords": ["Stephen Hawking", "Physicist", "Black Holes", "Hawking Radiation", "British"]
+    },
+    {
+      "Number": 10,
+      "Name": "Werner Heisenberg",
+      "BirthYear": 1901,
+      "DeathYear": 1976,
+      "HomeCountry": "Germany",
+      "Achievements": "Formulated the uncertainty principle, a key concept in quantum mechanics.",
+      "Keywords": ["Werner Heisenberg", "Physicist", "Uncertainty Principle", "Quantum Mechanics", "German"]
+    }
+  ]
+}
