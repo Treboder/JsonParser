@@ -1,5 +1,8 @@
 package com.example.JsonParser;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -17,6 +20,8 @@ public class JsonParserApplication implements CommandLineRunner {
 		SpringApplication.run(JsonParserApplication.class, args);
 	}
 
+	private static String exitCommand = "exit";
+
 	@Override
 	public void run(String... args) throws Exception {
 		logger.info("START JsonParserApplication");
@@ -25,40 +30,46 @@ public class JsonParserApplication implements CommandLineRunner {
 	}
 
 	private void readCommandsLoop() throws IOException {
-		String command = "";
-		while(!command.equals("exit")) {
+		String userInput = "";
+		while(!userInput.equals(exitCommand)) {
 			// read command
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-			command = reader.readLine();
-			String cmd = command.split(" ")[0];
+			userInput = reader.readLine();
+			String userCmd = userInput.split(" ")[0];
 
 			// switch commands
-			if(cmd.equals("read")) {
-
-				// get file argument
-				String arg = "";
-				if(command.split("").length > 0) {
-					arg = command.split(" ")[1];
-				}
-
-				// read file
-				try {
-					String fileName = "./data/" + arg + ".json";
-					readFile(fileName);
-				} catch (IOException e) {
-					logger.warn("Failed to read file");
-				}
+			if(userCmd.equals("read")) {
+				processReadCommand(userInput);
 			}
-			else if (!cmd.equals("exit")){
+			else if (!userCmd.equals(exitCommand)){
 				logger.warn("Unknown command");
 			}
 		}
 	}
 
-	private void readFile(String fileName) throws IOException {
+	private void processReadCommand(String command) {
+		// get file argument
+		String arg = "";
+		if(command.split("").length > 0) {
+			arg = command.split(" ")[1];
+		}
+
+		// read file
+		try {
+			String fileName = "./data/" + arg + ".json";
+			readAndParseFile(fileName);
+		} catch (IOException e) {
+			logger.warn("Failed to read file");
+		}
+	}
+
+	private void readAndParseFile(String fileName) throws IOException {
 		InputStream inputStream = new FileInputStream(fileName);
-		String data = readFromInputStream(inputStream);
+		String jsonString = readFromInputStream(inputStream);
 		logger.info("Read file {}",fileName);
+		JsonElement jsonElement = JsonParser.parseString(jsonString);
+		logger.info("Parse json {}",jsonElement);
+		JsonObject jsonObject = new JsonObject();
 	}
 
 	private String readFromInputStream(InputStream inputStream) throws IOException {
@@ -72,5 +83,7 @@ public class JsonParserApplication implements CommandLineRunner {
 		}
 		return resultStringBuilder.toString();
 	}
+
+
 
 }
