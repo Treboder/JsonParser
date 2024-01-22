@@ -1,15 +1,21 @@
-package com.example.JsonParser;
+package com.example.JsonParser.app;
 
+import com.example.JsonParser.app.objects.Person;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import javax.swing.text.html.HTMLDocument;
 import java.io.*;
+import java.util.Iterator;
 
 @SpringBootApplication
 public class JsonParserApplication implements CommandLineRunner {
@@ -64,12 +70,28 @@ public class JsonParserApplication implements CommandLineRunner {
 	}
 
 	private void readAndParseFile(String fileName) throws IOException {
+		logger.info("Read file {}",fileName);
 		InputStream inputStream = new FileInputStream(fileName);
 		String jsonString = readFromInputStream(inputStream);
-		logger.info("Read file {}",fileName);
-		JsonElement jsonElement = JsonParser.parseString(jsonString);
-		logger.info("Parse json {}",jsonElement);
-		JsonObject jsonObject = new JsonObject();
+
+		logger.info("Start parsing {}", fileName);
+		JsonObject jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
+		String category = jsonObject.get("Category").getAsString();
+		JsonArray people = jsonObject.get("Results").getAsJsonArray();
+
+		for(int i=0; i<people.size(); i++) {
+			JsonObject person = people.get(i).getAsJsonObject();
+			Person p = new Person();
+			p.setId(person.get("Number").getAsString());
+			p.setName(person.get("Name").getAsString());
+			p.setBirthYear(person.get("BirthYear").getAsString());
+			p.setDeathYear(person.get("DeathYear").getAsString());
+			p.setHomeCountry(person.get("HomeCountry").getAsString());
+			p.setAchievements(person.get("Achievements").getAsString());
+			p.setKeyWords(person.get("Keywords").getAsJsonArray().toString().split(""));
+			logger.info("Parse {}", p);
+		}
+
 	}
 
 	private String readFromInputStream(InputStream inputStream) throws IOException {

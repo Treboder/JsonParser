@@ -1,4 +1,4 @@
-package com.example.JsonParser;
+package com.example.JsonParser.app;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
