@@ -1,5 +1,6 @@
 package com.example.JsonParser.app;
 
+import com.example.JsonParser.app.objects.Category;
 import com.example.JsonParser.app.objects.Person;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -15,6 +16,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.swing.text.html.HTMLDocument;
 import java.io.*;
+import java.util.Arrays;
 import java.util.Iterator;
 
 @SpringBootApplication
@@ -62,36 +64,47 @@ public class JsonParserApplication implements CommandLineRunner {
 
 		// read file
 		try {
-			String fileName = "./data/" + arg + ".json";
-			readAndParseFile(fileName);
+			Category category = parseFileToCategory(arg);
+			logger.info("Finished parsing {} with {} elements", category, category.getPeople().length);
 		} catch (IOException e) {
 			logger.warn("Failed to read file");
 		}
 	}
 
-	private void readAndParseFile(String fileName) throws IOException {
+	private Category parseFileToCategory(String catID) throws IOException {
+
+		String fileName = "./data/" + catID + ".json";
 		logger.info("Read file {}",fileName);
 		InputStream inputStream = new FileInputStream(fileName);
 		String jsonString = readFromInputStream(inputStream);
 
 		logger.info("Start parsing {}", fileName);
 		JsonObject jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
-		String category = jsonObject.get("Category").getAsString();
-		JsonArray people = jsonObject.get("Results").getAsJsonArray();
+		String categoryName = jsonObject.get("Category").getAsString();
+		JsonArray peopleArray = jsonObject.get("Results").getAsJsonArray();
 
-		for(int i=0; i<people.size(); i++) {
-			JsonObject person = people.get(i).getAsJsonObject();
-			Person p = new Person();
-			p.setId(person.get("Number").getAsString());
-			p.setName(person.get("Name").getAsString());
-			p.setBirthYear(person.get("BirthYear").getAsString());
-			p.setDeathYear(person.get("DeathYear").getAsString());
-			p.setHomeCountry(person.get("HomeCountry").getAsString());
-			p.setAchievements(person.get("Achievements").getAsString());
-			p.setKeyWords(person.get("Keywords").getAsJsonArray().toString().split(""));
-			logger.info("Parse {}", p);
+		Category category = new Category(catID, categoryName);
+		for(int i=0; i<peopleArray.size(); i++) {
+			// parse personJSON
+			JsonObject personJSON = peopleArray.get(i).getAsJsonObject();
+			Person personObject = new Person();
+			personObject.setId(personJSON.get("Number").getAsString());
+			personObject.setName(personJSON.get("Name").getAsString());
+			personObject.setBirthYear(personJSON.get("BirthYear").getAsString());
+			personObject.setDeathYear(personJSON.get("DeathYear").getAsString());
+			personObject.setHomeCountry(personJSON.get("HomeCountry").getAsString());
+			personObject.setAchievements(personJSON.get("Achievements").getAsString());
+			// parse keywords
+			JsonArray keywords = personJSON.get("Keywords").getAsJsonArray();
+			personObject.setKeyWords(new String[keywords.size()]);
+			for(int j=0; j< personObject.getKeyWords().length; j++) {
+				personObject.getKeyWords()[j] = keywords.get(j).getAsString();
+			}
+			// add personJSON to category
+			category.getPeople()[i] = personObject;
+			logger.info("Parse {}", personObject);
 		}
-
+		return category;
 	}
 
 	private String readFromInputStream(InputStream inputStream) throws IOException {
