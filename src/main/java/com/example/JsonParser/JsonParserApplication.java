@@ -19,16 +19,46 @@ public class JsonParserApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		logger.info("STARTING JsonParserApplication via command line runner");
-		readFile();
+		logger.info("START JsonParserApplication");
+		readCommandsLoop();
+		logger.info("EXIT JsonParserApplication");
 	}
 
-	private void readFile() throws IOException {
-		ClassLoader classLoader = getClass().getClassLoader();
-		String fileName = "./data/a1.json";
+	private void readCommandsLoop() throws IOException {
+		String command = "";
+		while(!command.equals("exit")) {
+			// read command
+			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+			command = reader.readLine();
+			String cmd = command.split(" ")[0];
+
+			// switch commands
+			if(cmd.equals("read")) {
+
+				// get file argument
+				String arg = "";
+				if(command.split("").length > 0) {
+					arg = command.split(" ")[1];
+				}
+
+				// read file
+				try {
+					String fileName = "./data/" + arg + ".json";
+					readFile(fileName);
+				} catch (IOException e) {
+					logger.warn("Failed to read file");
+				}
+			}
+			else if (!cmd.equals("exit")){
+				logger.warn("Unknown command");
+			}
+		}
+	}
+
+	private void readFile(String fileName) throws IOException {
 		InputStream inputStream = new FileInputStream(fileName);
 		String data = readFromInputStream(inputStream);
-		logger.info("Read file ",fileName);
+		logger.info("Read file {}",fileName);
 	}
 
 	private String readFromInputStream(InputStream inputStream) throws IOException {
