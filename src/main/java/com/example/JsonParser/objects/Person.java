@@ -1,4 +1,4 @@
-package com.example.JsonParser.app.objects;
+package com.example.JsonParser.objects;
 
 import lombok.Getter;
 import lombok.Setter;

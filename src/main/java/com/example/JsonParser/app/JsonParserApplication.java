@@ -1,23 +1,17 @@
 package com.example.JsonParser.app;
 
-import com.example.JsonParser.app.objects.Category;
-import com.example.JsonParser.app.objects.Person;
+import com.example.JsonParser.objects.Category;
+import com.example.JsonParser.objects.Person;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.convention.MatchingStrategies;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import javax.swing.text.html.HTMLDocument;
 import java.io.*;
-import java.util.Arrays;
-import java.util.Iterator;
 
 @SpringBootApplication
 public class JsonParserApplication implements CommandLineRunner {
