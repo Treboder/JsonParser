@@ -79,26 +79,45 @@ public class JsonParserApplication implements CommandLineRunner {
 
 		Category category = new Category(catID, categoryName);
 		for(int i=0; i<peopleArray.size(); i++) {
-			// parse personJSON
+
+			// prepare source and target object
 			JsonObject personJSON = peopleArray.get(i).getAsJsonObject();
 			Person personObject = new Person();
-			personObject.setId(personJSON.get("Number").getAsString());
-			personObject.setName(personJSON.get("Name").getAsString());
-			personObject.setBirthYear(personJSON.get("BirthYear").getAsString());
-			personObject.setDeathYear(personJSON.get("DeathYear").getAsString());
-			personObject.setHomeCountry(personJSON.get("HomeCountry").getAsString());
-			personObject.setAchievements(personJSON.get("Achievements").getAsString());
+
+			// parse personJSON
+			personObject.setId(parseJsonField(personJSON, "Number"));
+			personObject.setName(parseJsonField(personJSON, "Name"));
+			personObject.setBirthYear(parseJsonField(personJSON, "BirthYear"));
+			personObject.setDeathYear(parseJsonField(personJSON, "DeathYear"));
+			personObject.setHomeCountry(parseJsonField(personJSON, "HomeCountry"));
+			personObject.setAchievements(parseJsonField(personJSON, "Achievements"));
+
 			// parse keywords
-			JsonArray keywords = personJSON.get("Keywords").getAsJsonArray();
-			personObject.setKeyWords(new String[keywords.size()]);
-			for(int j=0; j< personObject.getKeyWords().length; j++) {
-				personObject.getKeyWords()[j] = keywords.get(j).getAsString();
+			try {
+				JsonArray keywords = personJSON.get("Keywords").getAsJsonArray();
+				personObject.setKeyWords(new String[keywords.size()]);
+				for(int j=0; j< personObject.getKeyWords().length; j++) {
+					personObject.getKeyWords()[j] = keywords.get(j).getAsString();
+				}
+			} catch (Exception e) {
+				logger.warn("Failed to parse keywords form {}", personJSON);
 			}
+
 			// add personJSON to category
 			category.getPeople()[i] = personObject;
 			logger.info("Parse {}", personObject);
 		}
 		return category;
+	}
+
+	private String parseJsonField(JsonObject personJSON, String fieldName) {
+		String value = null;
+		try {
+			value = personJSON.get(fieldName).getAsString();
+		} catch (Exception e) {
+			logger.warn("Failed to parse field {} from {}", fieldName, personJSON);
+		}
+		return value;
 	}
 
 	private String readFromInputStream(InputStream inputStream) throws IOException {
