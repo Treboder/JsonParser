@@ -12,6 +12,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Stream;
 
 @SpringBootApplication
 public class JsonParserApplication implements CommandLineRunner {
@@ -23,6 +28,7 @@ public class JsonParserApplication implements CommandLineRunner {
 	}
 
 	private static String exitCommand = "exit";
+	private static String directory = "./data/";
 
 	@Override
 	public void run(String... args) throws Exception {
@@ -56,28 +62,76 @@ public class JsonParserApplication implements CommandLineRunner {
 			arg = command.split(" ")[1];
 		}
 
-		// read file
-		try {
-			Category category = parseFileToCategory(arg);
-			logger.info("Finished parsing {} with {} elements", category, category.getPeople().length);
-		} catch (IOException e) {
-			logger.warn("Failed to read file");
+		// read all data files
+		if(arg.equals("all")) {
+			// get list of files
+			List<Path> filePaths = null;
+			try {
+				filePaths = Files.walk(Paths.get(directory))
+						.filter(Files::isRegularFile)
+						.toList();
+
+				logger.info("Found {} data files to parse", filePaths.size());
+			} catch (IOException e) {
+				logger.error("Failed to to fetch data files to parse");
+			}
+			// go through all files
+			if(filePaths != null) {
+				for (int i=0; i<filePaths.size(); i++) {
+					String fileName = filePaths.get(i).getFileName().toString();
+					String fileID = fileName.replace(".json", "");
+					// read certain file specified with name
+					try {
+						Category category = parseFileToCategory(fileID);
+						if(category != null)
+							logger.info("Parsed {} with {} elements", category, category.getPeople().length);
+						else
+							logger.error("Failed to parse {}", fileID);
+
+					} catch (IOException e) {
+						logger.error("Failed to read file");
+					}
+				}
+			}
+		}
+		else {
+			// read certain file specified with argument
+			try {
+				Category category = parseFileToCategory(arg);
+				if(category != null)
+					logger.info("Parsed {} with {} elements", category, category.getPeople().length);
+				else
+					logger.error("Failed to parse {}", arg);
+			} catch (IOException e) {
+				logger.warn("Failed to read file");
+			}
 		}
 	}
 
+
+
 	private Category parseFileToCategory(String catID) throws IOException {
 
-		String fileName = "./data/" + catID + ".json";
-		logger.info("Read file {}",fileName);
+		String fileName = directory + catID + ".json";
+		logger.debug("Read file {}",fileName);
 		InputStream inputStream = new FileInputStream(fileName);
 		String jsonString = readFromInputStream(inputStream);
 
-		logger.info("Start parsing {}", fileName);
-		JsonObject jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
+		logger.debug("Start parsing {}", fileName);
+
+		JsonObject jsonObject = null;
+		try {
+			jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
+		} catch (Exception e) {
+			logger.error("Failed to parse {}", fileName);
+			logger.error(e.getMessage());
+			return null;
+		}
+
 		String categoryName = jsonObject.get("Category").getAsString();
 		JsonArray peopleArray = jsonObject.get("Results").getAsJsonArray();
-
 		Category category = new Category(catID, categoryName);
+
 		for(int i=0; i<peopleArray.size(); i++) {
 
 			// prepare source and target object
@@ -100,30 +154,33 @@ public class JsonParserApplication implements CommandLineRunner {
 					personObject.getKeyWords()[j] = keywords.get(j).getAsString();
 				}
 			} catch (Exception e) {
-				logger.warn("Failed to parse keywords form {}", personJSON);
+				logger.error("Failed to parse keywords from {}", personJSON);
 			}
 
 			// add personJSON to category
 			category.getPeople()[i] = personObject;
-			logger.info("Parse {}", personObject);
+			logger.debug("Parse {}", personObject);
 		}
 		return category;
 	}
 
 	private String parseJsonField(JsonObject personJSON, String fieldName) {
-		String value = null;
+		String value = "unknown";
 		try {
 			value = personJSON.get(fieldName).getAsString();
 		} catch (Exception e) {
-			logger.warn("Failed to parse field {} from {}", fieldName, personJSON);
+			if(fieldName.equals("DeathYear")) {
+				logger.warn("Failed to parse field {} from {}", fieldName, personJSON);
+			}
+			else
+				logger.error("Failed to parse field {} from {}", fieldName, personJSON);
 		}
 		return value;
 	}
 
 	private String readFromInputStream(InputStream inputStream) throws IOException {
 		StringBuilder resultStringBuilder = new StringBuilder();
-		try (BufferedReader br
-					 = new BufferedReader(new InputStreamReader(inputStream))) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				resultStringBuilder.append(line).append("\n");
