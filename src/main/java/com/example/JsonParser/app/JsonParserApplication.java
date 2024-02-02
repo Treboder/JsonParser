@@ -15,8 +15,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Stream;
 
 @SpringBootApplication
 public class JsonParserApplication implements CommandLineRunner {
@@ -27,8 +27,12 @@ public class JsonParserApplication implements CommandLineRunner {
 		SpringApplication.run(JsonParserApplication.class, args);
 	}
 
+	private static String parseCommand = "parse";
+	private static String getCommand = "get";
 	private static String exitCommand = "exit";
 	private static String directory = "./data/";
+
+	private HashMap<String, Category> categoryMap = new HashMap<>();
 
 	@Override
 	public void run(String... args) throws Exception {
@@ -46,8 +50,11 @@ public class JsonParserApplication implements CommandLineRunner {
 			String userCmd = userInput.split(" ")[0];
 
 			// switch commands
-			if(userCmd.equals("read")) {
-				processReadCommand(userInput);
+			if(userCmd.equals(parseCommand)) {
+				processParseCommand(userInput);
+			}
+			else if (userCmd.equals(getCommand)) {
+				processGetCommand(userInput);
 			}
 			else if (!userCmd.equals(exitCommand)){
 				logger.warn("Unknown command");
@@ -55,7 +62,33 @@ public class JsonParserApplication implements CommandLineRunner {
 		}
 	}
 
-	private void processReadCommand(String command) {
+	private void processGetCommand(String command) {
+		// get file argument
+		String arg = "";
+		if(command.split("").length > 0) {
+			arg = command.split(" ")[1];
+		}
+
+		// get all categories parsed
+		if(arg.equals("all")) {
+			for(String categoryID : categoryMap.keySet().stream().toList()) {
+				Category c = categoryMap.get(categoryID);
+				logger.info("Get {}:{} with {} elements", categoryID, c.getCategoryName(), c.getPeople().length);
+			}
+		}
+		else {
+			// get certain category parsed
+			if(categoryMap.containsKey(arg)) {
+				Category c = categoryMap.get(arg);
+				logger.info("Get {}:{} ", arg, c.getCategoryName());
+			}
+			else
+				logger.warn("Cant find {}", arg);
+
+		}
+	}
+
+	private void processParseCommand(String command) {
 		// get file argument
 		String arg = "";
 		if(command.split("").length > 0) {
@@ -83,8 +116,10 @@ public class JsonParserApplication implements CommandLineRunner {
 					// read certain file specified with name
 					try {
 						Category category = parseFileToCategory(fileID);
-						if(category != null)
+						if(category != null) {
 							logger.info("Parsed {} with {} elements", category, category.getPeople().length);
+							categoryMap.put(category.getCategoryID(), category);
+						}
 						else
 							logger.error("Failed to parse {}", fileID);
 
@@ -107,8 +142,6 @@ public class JsonParserApplication implements CommandLineRunner {
 			}
 		}
 	}
-
-
 
 	private Category parseFileToCategory(String catID) throws IOException {
 
@@ -165,17 +198,20 @@ public class JsonParserApplication implements CommandLineRunner {
 	}
 
 	private String parseJsonField(JsonObject personJSON, String fieldName) {
-		String value = "unknown";
+		String value = "n/a";
 		try {
 			value = personJSON.get(fieldName).getAsString();
+			return value;
 		} catch (Exception e) {
 			if(fieldName.equals("DeathYear")) {
-				logger.warn("Failed to parse field {} from {}", fieldName, personJSON);
+				logger.debug("Failed to parse field {} from {}", fieldName, personJSON);
+				return value;
 			}
-			else
+			else {
 				logger.error("Failed to parse field {} from {}", fieldName, personJSON);
+				return value;
+			}
 		}
-		return value;
 	}
 
 	private String readFromInputStream(InputStream inputStream) throws IOException {
