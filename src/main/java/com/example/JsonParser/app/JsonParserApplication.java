@@ -15,6 +15,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class JsonParserApplication implements CommandLineRunner {
 
 	private static String parseCommand = "parse";
 	private static String getCommand = "get";
+	private static String showCommand = "show";
 	private static String exitCommand = "exit";
 	private static String directory = "./data/";
 
@@ -56,37 +58,18 @@ public class JsonParserApplication implements CommandLineRunner {
 			else if (userCmd.equals(getCommand)) {
 				processGetCommand(userInput);
 			}
+			else if (userCmd.equals(showCommand)) {
+				processShowCommand(userInput);
+			}
 			else if (!userCmd.equals(exitCommand)){
 				logger.warn("Unknown command");
 			}
 		}
 	}
 
-	private void processGetCommand(String command) {
-		// get file argument
-		String arg = "";
-		if(command.split("").length > 0) {
-			arg = command.split(" ")[1];
-		}
-
-		// get all categories parsed
-		if(arg.equals("all")) {
-			for(String categoryID : categoryMap.keySet().stream().toList()) {
-				Category c = categoryMap.get(categoryID);
-				logger.info("Get {}:{} with {} elements", categoryID, c.getCategoryName(), c.getPeople().length);
-			}
-		}
-		else {
-			// get certain category parsed
-			if(categoryMap.containsKey(arg)) {
-				Category c = categoryMap.get(arg);
-				logger.info("Get {}:{} ", arg, c.getCategoryName());
-			}
-			else
-				logger.warn("Cant find {}", arg);
-
-		}
-	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// Parse Section /////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	private void processParseCommand(String command) {
 		// get file argument
@@ -225,6 +208,121 @@ public class JsonParserApplication implements CommandLineRunner {
 		return resultStringBuilder.toString();
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// Analyze Section///////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	private void processGetCommand(String command) {
+		// get file argument
+		String arg = "";
+		if(command.split("").length > 0) {
+			arg = command.split(" ")[1];
+		}
+
+		// get all categories parsed
+		if(arg.equals("all")) {
+			for(String categoryID : categoryMap.keySet().stream().toList()) {
+				Category c = categoryMap.get(categoryID);
+				logger.info("Get {} ({}) with {} elements", categoryID, c.getCategoryName(), c.getPeople().length);
+			}
+		}
+		else {
+			// get certain category parsed
+			if(categoryMap.containsKey(arg)) {
+				Category c = categoryMap.get(arg);
+				logger.info("Get {} ({})  ", arg, c.getCategoryName());
+			}
+			else
+				logger.warn("Cant find {}", arg);
+		}
+	}
+
+	private void processShowCommand(String command) {
+		// get file argument
+		String arg = "";
+		if(command.split("").length > 0) {
+			arg = command.split(" ")[1];
+		}
+
+		// get all categories parsed
+		if(arg.equals("all")) {
+			for(String categoryID : categoryMap.keySet().stream().sorted().toList()) {
+				Category c = categoryMap.get(categoryID);
+				logger.info("Get {} ({}) with {} people", categoryID, c.getCategoryName(), c.getPeople().length);
+				for(Person p : c.getPeople())
+					logger.info("Show {}", p);
+			}
+		}
+		else if(arg.equals("names")) {
+			HashMap<String, String> namesWithCategories = new HashMap<>();
+			HashMap<String, Integer> namesWithCount = new HashMap<>();
+			for(String categoryID : categoryMap.keySet().stream().toList()) {
+				Category c = categoryMap.get(categoryID);
+				for(Person p : c.getPeople()) {
+					int count = 0;
+					if(namesWithCount.containsKey(p.getName())) {
+						count = namesWithCount.get(p.getName());
+						namesWithCount.put(p.getName(), count+1);
+					}
+					else
+						namesWithCount.put(p.getName(), count);
+					// add name with count appended
+					String countAppendix = " (" + count + ")";
+					namesWithCategories.put(p.getName() + countAppendix, c.getCategoryName());
+				}
+			}
+			for(String name : namesWithCategories.keySet().stream().sorted().toList())
+				logger.info("{} ({})", name, namesWithCategories.get(name));
+		}
+		else if(arg.equals("duplicates")) {
+			HashMap<String, List<String>> namesWithCategories = new HashMap<>();
+			HashMap<String, Integer> namesWithCount = new HashMap<>();
+			for (String categoryID : categoryMap.keySet().stream().toList()) {
+				Category c = categoryMap.get(categoryID);
+				for (Person p : c.getPeople()) {
+					int count = 0;
+					if (namesWithCount.containsKey(p.getName())) {
+						count = namesWithCount.get(p.getName());
+						namesWithCount.put(p.getName(), count + 1);
+					} else
+						namesWithCount.put(p.getName(), count);
+
+					// add entry
+					if(!namesWithCategories.containsKey(p.getName()))
+						namesWithCategories.put(p.getName(), new ArrayList<>());
+
+					// add category to the name
+					namesWithCategories.get(p.getName()).add(c.getCategoryName());
+				}
+			}
+			// find duplicates
+			List<String> duplicates = new ArrayList<>();
+			for(String name : namesWithCount.keySet().stream().toList()) {
+				if(namesWithCount.get(name) > 0)
+					duplicates.add(name);
+			}
+			// show duplicates
+			for(String duplicate : duplicates)
+				for(String category : namesWithCategories.get(duplicate))
+					logger.info("{} ({})", duplicate, category);
+		}
+		else {
+			// get certain category parsed
+			if(categoryMap.containsKey(arg)) {
+				Category c = categoryMap.get(arg);
+				logger.info("Get {} ({}) with {} people", arg, c.getCategoryName());
+				for(Person p : c.getPeople())
+					logger.info("Show {}", p);
+			}
+			else
+				logger.warn("Cant find {}", arg);
+		}
+	}
+
+	// Ada Lovelace and others are duplicates in the same category -> clean up
+	// count all distinct names
+	// ensure distinct mosaics -> multi-category-people with different templates in every category
+	// own all people in one category -> get no1 with all images from the category (unique tiles)
+	// own all mosaics of one person -> get another image of the person with
 
 }
