@@ -34,7 +34,8 @@ public class JsonParserApplication implements CommandLineRunner {
 	private static String exitCommand = "exit";
 	private static String directory = "./data/";
 
-	private HashMap<String, Category> categoryMap = new HashMap<>();
+	private HashMap<String, Category> categoryHashMap = new HashMap<>();
+	private HashMap<String, List<String>> namesHashmapWithListOfCategories = new HashMap<>();
 
 	@Override
 	public void run(String... args) throws Exception {
@@ -53,7 +54,8 @@ public class JsonParserApplication implements CommandLineRunner {
 
 			// switch commands
 			if(userCmd.equals(parseCommand)) {
-				processParseCommand(userInput);
+				this.categoryHashMap = processParseCommand(userInput);
+				this.namesHashmapWithListOfCategories = createMapWithNamesAndListOfCategories();
 			}
 			else if (userCmd.equals(getCommand)) {
 				processGetCommand(userInput);
@@ -71,15 +73,18 @@ public class JsonParserApplication implements CommandLineRunner {
 	///////////////////////////////// Parse Section /////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	private void processParseCommand(String command) {
+	private HashMap<String, Category> processParseCommand(String command) {
 		// get file argument
 		String arg = "";
 		if(command.split("").length > 0) {
 			arg = command.split(" ")[1];
 		}
 
+		HashMap<String, Category> map = new HashMap<>();
+
 		// read all data files
 		if(arg.equals("all")) {
+
 			// get list of files
 			List<Path> filePaths = null;
 			try {
@@ -91,6 +96,7 @@ public class JsonParserApplication implements CommandLineRunner {
 			} catch (IOException e) {
 				logger.error("Failed to to fetch data files to parse");
 			}
+
 			// go through all files
 			if(filePaths != null) {
 				for (int i=0; i<filePaths.size(); i++) {
@@ -101,7 +107,7 @@ public class JsonParserApplication implements CommandLineRunner {
 						Category category = parseFileToCategory(fileID);
 						if(category != null) {
 							logger.info("Parsed {} with {} elements", category, category.getPeople().length);
-							categoryMap.put(category.getCategoryID(), category);
+							map.put(category.getCategoryID(), category);
 						}
 						else
 							logger.error("Failed to parse {}", fileID);
@@ -112,8 +118,9 @@ public class JsonParserApplication implements CommandLineRunner {
 				}
 			}
 		}
+
+		// read certain file specified with argument
 		else {
-			// read certain file specified with argument
 			try {
 				Category category = parseFileToCategory(arg);
 				if(category != null)
@@ -124,6 +131,8 @@ public class JsonParserApplication implements CommandLineRunner {
 				logger.warn("Failed to read file");
 			}
 		}
+
+		return map;
 	}
 
 	private Category parseFileToCategory(String catID) throws IOException {
@@ -212,6 +221,27 @@ public class JsonParserApplication implements CommandLineRunner {
 	///////////////////////////////// Analyze Section///////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	private HashMap<String, List<String>> createMapWithNamesAndListOfCategories() {
+		HashMap<String, List<String>> hashmap = new HashMap<>();
+		for (String categoryID : categoryHashMap.keySet().stream().toList()) {
+			Category c = categoryHashMap.get(categoryID);
+			for (Person p : c.getPeople()) {
+
+				// add entry
+				if(!hashmap.containsKey(p.getName()))
+					hashmap.put(p.getName(), new ArrayList<>());
+
+				// add category to the name
+				hashmap.get(p.getName()).add(c.getCategoryName());
+			}
+		}
+		return hashmap;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// Report Section///////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	private void processGetCommand(String command) {
 		// get file argument
 		String arg = "";
@@ -221,15 +251,15 @@ public class JsonParserApplication implements CommandLineRunner {
 
 		// get all categories parsed
 		if(arg.equals("all")) {
-			for(String categoryID : categoryMap.keySet().stream().toList()) {
-				Category c = categoryMap.get(categoryID);
+			for(String categoryID : this.categoryHashMap.keySet().stream().toList()) {
+				Category c = this.categoryHashMap.get(categoryID);
 				logger.info("Get {} ({}) with {} elements", categoryID, c.getCategoryName(), c.getPeople().length);
 			}
 		}
 		else {
 			// get certain category parsed
-			if(categoryMap.containsKey(arg)) {
-				Category c = categoryMap.get(arg);
+			if(this.categoryHashMap.containsKey(arg)) {
+				Category c = this.categoryHashMap.get(arg);
 				logger.info("Get {} ({})  ", arg, c.getCategoryName());
 			}
 			else
@@ -246,70 +276,61 @@ public class JsonParserApplication implements CommandLineRunner {
 
 		// get all categories parsed
 		if(arg.equals("all")) {
-			for(String categoryID : categoryMap.keySet().stream().sorted().toList()) {
-				Category c = categoryMap.get(categoryID);
+			for(String categoryID : categoryHashMap.keySet().stream().sorted().toList()) {
+				Category c = categoryHashMap.get(categoryID);
 				logger.info("Get {} ({}) with {} people", categoryID, c.getCategoryName(), c.getPeople().length);
 				for(Person p : c.getPeople())
 					logger.info("Show {}", p);
 			}
 		}
 		else if(arg.equals("names")) {
-			HashMap<String, String> namesWithCategories = new HashMap<>();
-			HashMap<String, Integer> namesWithCount = new HashMap<>();
-			for(String categoryID : categoryMap.keySet().stream().toList()) {
-				Category c = categoryMap.get(categoryID);
-				for(Person p : c.getPeople()) {
-					int count = 0;
-					if(namesWithCount.containsKey(p.getName())) {
-						count = namesWithCount.get(p.getName());
-						namesWithCount.put(p.getName(), count+1);
-					}
-					else
-						namesWithCount.put(p.getName(), count);
-					// add name with count appended
-					String countAppendix = " (" + count + ")";
-					namesWithCategories.put(p.getName() + countAppendix, c.getCategoryName());
-				}
+
+			for(String name : this.namesHashmapWithListOfCategories.keySet().stream().sorted().toList())
+				logger.info("{} ({})", name, this.namesHashmapWithListOfCategories.get(name));
+		}
+		else if(arg.equals("multi-category")) {
+
+			// find people in more than one category
+			List<String> multiCatList = new ArrayList<>();
+			for(String name : this.namesHashmapWithListOfCategories.keySet().stream().toList()) {
+				if(namesHashmapWithListOfCategories.get(name).size() > 0)
+					multiCatList.add(name);
 			}
-			for(String name : namesWithCategories.keySet().stream().sorted().toList())
-				logger.info("{} ({})", name, namesWithCategories.get(name));
+
+			// show duplicates
+			for(String duplicate : multiCatList)
+				for(String category : this.namesHashmapWithListOfCategories.get(duplicate))
+					logger.info("{} ({})", duplicate, category);
 		}
 		else if(arg.equals("duplicates")) {
-			HashMap<String, List<String>> namesWithCategories = new HashMap<>();
-			HashMap<String, Integer> namesWithCount = new HashMap<>();
-			for (String categoryID : categoryMap.keySet().stream().toList()) {
-				Category c = categoryMap.get(categoryID);
-				for (Person p : c.getPeople()) {
-					int count = 0;
-					if (namesWithCount.containsKey(p.getName())) {
-						count = namesWithCount.get(p.getName());
-						namesWithCount.put(p.getName(), count + 1);
-					} else
-						namesWithCount.put(p.getName(), count);
 
-					// add entry
-					if(!namesWithCategories.containsKey(p.getName()))
-						namesWithCategories.put(p.getName(), new ArrayList<>());
-
-					// add category to the name
-					namesWithCategories.get(p.getName()).add(c.getCategoryName());
-				}
+			// find people in more than one category
+			List<String> multiCatList = new ArrayList<>();
+			for(String name : this.namesHashmapWithListOfCategories.keySet().stream().toList()) {
+				if(namesHashmapWithListOfCategories.get(name).size() > 0)
+					multiCatList.add(name);
 			}
+
 			// find duplicates
 			List<String> duplicates = new ArrayList<>();
-			for(String name : namesWithCount.keySet().stream().toList()) {
-				if(namesWithCount.get(name) > 0)
-					duplicates.add(name);
+			for(String name : multiCatList) {
+				for(int i=0; i<namesHashmapWithListOfCategories.get(name).size(); i++ )
+					for(int j=i+1; j<namesHashmapWithListOfCategories.get(name).size(); j++ ) {
+						if(namesHashmapWithListOfCategories.get(name).get(i).equals(namesHashmapWithListOfCategories.get(name).get(j)))
+							if(!duplicates.contains(name))
+								duplicates.add(name);
+					}
 			}
+
 			// show duplicates
 			for(String duplicate : duplicates)
-				for(String category : namesWithCategories.get(duplicate))
+				for(String category : this.namesHashmapWithListOfCategories.get(duplicate))
 					logger.info("{} ({})", duplicate, category);
 		}
 		else {
 			// get certain category parsed
-			if(categoryMap.containsKey(arg)) {
-				Category c = categoryMap.get(arg);
+			if(categoryHashMap.containsKey(arg)) {
+				Category c = categoryHashMap.get(arg);
 				logger.info("Get {} ({}) with {} people", arg, c.getCategoryName());
 				for(Person p : c.getPeople())
 					logger.info("Show {}", p);
