@@ -37,6 +37,20 @@ public class JsonParserApplication implements CommandLineRunner {
 	private HashMap<String, Category> categoryHashMap = new HashMap<>();
 	private HashMap<String, List<String>> namesHashmapWithListOfCategories = new HashMap<>();
 
+	/* Commands:
+
+			parse a1
+			parse all
+
+			get a1
+			get all
+
+			show a1
+			show all
+			show multi-category
+			show duplicates
+	 */
+
 	@Override
 	public void run(String... args) throws Exception {
 		logger.info("START JsonParserApplication");
@@ -233,6 +247,10 @@ public class JsonParserApplication implements CommandLineRunner {
 
 				// add category to the name
 				hashmap.get(p.getName()).add(c.getCategoryName());
+
+//				List<String> categories = hashmap.get(p.getName());
+//				if(p.getName().equals("Charlemagne"))
+//					categories.size();
 			}
 		}
 		return hashmap;
@@ -293,7 +311,7 @@ public class JsonParserApplication implements CommandLineRunner {
 			// find people in more than one category
 			List<String> multiCatList = new ArrayList<>();
 			for(String name : this.namesHashmapWithListOfCategories.keySet().stream().toList()) {
-				if(namesHashmapWithListOfCategories.get(name).size() > 0)
+				if(namesHashmapWithListOfCategories.get(name).size() > 1)
 					multiCatList.add(name);
 			}
 
@@ -307,8 +325,13 @@ public class JsonParserApplication implements CommandLineRunner {
 			// find people in more than one category
 			List<String> multiCatList = new ArrayList<>();
 			for(String name : this.namesHashmapWithListOfCategories.keySet().stream().toList()) {
-				if(namesHashmapWithListOfCategories.get(name).size() > 0)
+				if(namesHashmapWithListOfCategories.get(name).size() > 1) {
 					multiCatList.add(name);
+//					List<String> categories = namesHashmapWithListOfCategories.get(name);
+//					if(name.equals("Charlemagne"))
+//						categories.size();
+				}
+
 			}
 
 			// find duplicates
@@ -323,6 +346,7 @@ public class JsonParserApplication implements CommandLineRunner {
 			}
 
 			// show duplicates
+			logger.info("Found {} duplicates", duplicates.size());
 			for(String duplicate : duplicates)
 				for(String category : this.namesHashmapWithListOfCategories.get(duplicate))
 					logger.info("{} ({})", duplicate, category);
@@ -331,7 +355,7 @@ public class JsonParserApplication implements CommandLineRunner {
 			// get certain category parsed
 			if(categoryHashMap.containsKey(arg)) {
 				Category c = categoryHashMap.get(arg);
-				logger.info("Get {} ({}) with {} people", arg, c.getCategoryName());
+				logger.info("Get {} ({}) with {} people", arg, c.getCategoryName(), this.categoryHashMap.get(arg).getPeople().length);
 				for(Person p : c.getPeople())
 					logger.info("Show {}", p);
 			}
@@ -340,7 +364,6 @@ public class JsonParserApplication implements CommandLineRunner {
 		}
 	}
 
-	// Ada Lovelace and others are duplicates in the same category -> clean up
 	// count all distinct names
 	// ensure distinct mosaics -> multi-category-people with different templates in every category
 	// own all people in one category -> get no1 with all images from the category (unique tiles)
