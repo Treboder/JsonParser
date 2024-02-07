@@ -15,12 +15,14 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @SpringBootApplication
 public class JsonParserApplication implements CommandLineRunner {
+
+	// ensure distinct mosaics -> multi-category-people with different templates in every category
+	// own all people in one category -> get no1 with all images from the category (unique tiles)
+	// own all mosaics of one person -> get another image of the person with
 
 	private static Logger logger = LoggerFactory.getLogger(JsonParserApplication.class);
 
@@ -31,11 +33,14 @@ public class JsonParserApplication implements CommandLineRunner {
 	private static String parseCommand = "parse";
 	private static String getCommand = "get";
 	private static String showCommand = "show";
+	private static String countCommand = "count";
 	private static String exitCommand = "exit";
 	private static String directory = "./data/";
 
 	private HashMap<String, Category> categoryHashMap = new HashMap<>();
 	private HashMap<String, List<String>> namesHashmapWithListOfCategories = new HashMap<>();
+	private List<String> multiCategoryPeopleList = new ArrayList<>();
+	private List<String> duplicatePeopleList = new ArrayList<>();
 
 	/* Commands:
 
@@ -47,8 +52,12 @@ public class JsonParserApplication implements CommandLineRunner {
 
 			show a1
 			show all
-			show multi-category
+			show multi-cat
 			show duplicates
+
+			count names
+			count categories
+			count multi-cat
 	 */
 
 	@Override
@@ -70,12 +79,17 @@ public class JsonParserApplication implements CommandLineRunner {
 			if(userCmd.equals(parseCommand)) {
 				this.categoryHashMap = processParseCommand(userInput);
 				this.namesHashmapWithListOfCategories = createMapWithNamesAndListOfCategories();
+				this.multiCategoryPeopleList = getListOfMultiCategoryPeople();
+				this.duplicatePeopleList = getListOfDuplicates();
 			}
 			else if (userCmd.equals(getCommand)) {
 				processGetCommand(userInput);
 			}
 			else if (userCmd.equals(showCommand)) {
 				processShowCommand(userInput);
+			}
+			else if (userCmd.equals(countCommand)) {
+				processCountCommand(userInput);
 			}
 			else if (!userCmd.equals(exitCommand)){
 				logger.warn("Unknown command");
@@ -256,6 +270,29 @@ public class JsonParserApplication implements CommandLineRunner {
 		return hashmap;
 	}
 
+	private List<String> getListOfMultiCategoryPeople() {
+		// find people in more than one category
+		List<String> multiCatList = new ArrayList<>();
+		for(String name : this.namesHashmapWithListOfCategories.keySet().stream().toList()) {
+			if(namesHashmapWithListOfCategories.get(name).size() > 1)
+				multiCatList.add(name);
+		}
+		return multiCatList;
+	}
+
+	private List<String> getListOfDuplicates() {
+		List<String> duplicates = new ArrayList<>();
+		for(String name : multiCategoryPeopleList) {
+			for(int i=0; i<namesHashmapWithListOfCategories.get(name).size(); i++ )
+				for(int j=i+1; j<namesHashmapWithListOfCategories.get(name).size(); j++ ) {
+					if(namesHashmapWithListOfCategories.get(name).get(i).equals(namesHashmapWithListOfCategories.get(name).get(j)))
+						if(!duplicates.contains(name))
+							duplicates.add(name);
+				}
+		}
+		return duplicates;
+	}
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Report Section///////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -301,53 +338,28 @@ public class JsonParserApplication implements CommandLineRunner {
 					logger.info("Show {}", p);
 			}
 		}
-		else if(arg.equals("names")) {
 
+		else if(arg.equals("names")) {
 			for(String name : this.namesHashmapWithListOfCategories.keySet().stream().sorted().toList())
 				logger.info("{} ({})", name, this.namesHashmapWithListOfCategories.get(name));
 		}
-		else if(arg.equals("multi-category")) {
 
-			// find people in more than one category
-			List<String> multiCatList = new ArrayList<>();
-			for(String name : this.namesHashmapWithListOfCategories.keySet().stream().toList()) {
-				if(namesHashmapWithListOfCategories.get(name).size() > 1)
-					multiCatList.add(name);
-			}
+		else if(arg.equals("multi-cat")) {
 
-			// show duplicates
-			for(String duplicate : multiCatList)
+			List<String> sortedListOfNames = getListOfMultiCategoryPeopleOrderedByNumberOfCategories();
+
+			for(String duplicate : sortedListOfNames)
 				for(String category : this.namesHashmapWithListOfCategories.get(duplicate))
 					logger.info("{} ({})", duplicate, category);
+
+//			for(String duplicate : this.multiCategoryPeopleList)
+//				for(String category : this.namesHashmapWithListOfCategories.get(duplicate))
+//					logger.info("{} ({})", duplicate, category);
 		}
+
 		else if(arg.equals("duplicates")) {
-
-			// find people in more than one category
-			List<String> multiCatList = new ArrayList<>();
-			for(String name : this.namesHashmapWithListOfCategories.keySet().stream().toList()) {
-				if(namesHashmapWithListOfCategories.get(name).size() > 1) {
-					multiCatList.add(name);
-//					List<String> categories = namesHashmapWithListOfCategories.get(name);
-//					if(name.equals("Charlemagne"))
-//						categories.size();
-				}
-
-			}
-
-			// find duplicates
-			List<String> duplicates = new ArrayList<>();
-			for(String name : multiCatList) {
-				for(int i=0; i<namesHashmapWithListOfCategories.get(name).size(); i++ )
-					for(int j=i+1; j<namesHashmapWithListOfCategories.get(name).size(); j++ ) {
-						if(namesHashmapWithListOfCategories.get(name).get(i).equals(namesHashmapWithListOfCategories.get(name).get(j)))
-							if(!duplicates.contains(name))
-								duplicates.add(name);
-					}
-			}
-
-			// show duplicates
-			logger.info("Found {} duplicates", duplicates.size());
-			for(String duplicate : duplicates)
+			logger.info("Found {} duplicates", this.duplicatePeopleList.size());
+			for(String duplicate : this.duplicatePeopleList)
 				for(String category : this.namesHashmapWithListOfCategories.get(duplicate))
 					logger.info("{} ({})", duplicate, category);
 		}
@@ -364,9 +376,57 @@ public class JsonParserApplication implements CommandLineRunner {
 		}
 	}
 
-	// count all distinct names
-	// ensure distinct mosaics -> multi-category-people with different templates in every category
-	// own all people in one category -> get no1 with all images from the category (unique tiles)
-	// own all mosaics of one person -> get another image of the person with
+	private void processCountCommand(String command) {
+		// get file argument
+		String arg = "";
+		if(command.split("").length > 0) {
+			arg = command.split(" ")[1];
+		}
+
+		int names = this.namesHashmapWithListOfCategories.keySet().stream().toList().size();
+		int categories = this.categoryHashMap.keySet().stream().toList().size();
+		int multiCat = this.multiCategoryPeopleList.size();
+
+		// get all categories parsed
+		if(arg.equals("names")) {
+			logger.info("Parsed {} distinct names (in {} categories)", names, categories);
+		}
+		else if(arg.equals("categories")) {
+			logger.info("Parsed {} categories with ({} distinct names)", categories, names);
+		}
+		else if(arg.equals("multi-cat")) {
+			logger.info("Analyzed {} people present in more than one category", categories, multiCat);
+		}
+		else
+			logger.warn("Failed to interpret command");
+
+	}
+
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// Support Section  //////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	private List<String> getListOfMultiCategoryPeopleOrderedByNumberOfCategories() {
+
+		HashMap<String, Integer> map = new HashMap<>();
+		for(String name : this.multiCategoryPeopleList)
+			map.put(name, this.namesHashmapWithListOfCategories.get(name).size());
+
+		Object[] a = map.entrySet().toArray();
+		Arrays.sort(a, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				return ((Map.Entry<String, Integer>) o2).getValue()
+						.compareTo(((Map.Entry<String, Integer>) o1).getValue());
+			}
+		});
+
+		ArrayList<String> sortedNames = new ArrayList<>();
+		for (Object e : a) {
+			sortedNames.add(Arrays.stream(e.toString().split("=")).toList().get(0));
+		}
+
+		return sortedNames;
+	}
 
 }
