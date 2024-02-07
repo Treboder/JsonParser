@@ -345,16 +345,10 @@ public class JsonParserApplication implements CommandLineRunner {
 		}
 
 		else if(arg.equals("multi-cat")) {
-
 			List<String> sortedListOfNames = getListOfMultiCategoryPeopleOrderedByNumberOfCategories();
-
 			for(String duplicate : sortedListOfNames)
 				for(String category : this.namesHashmapWithListOfCategories.get(duplicate))
 					logger.info("{} ({})", duplicate, category);
-
-//			for(String duplicate : this.multiCategoryPeopleList)
-//				for(String category : this.namesHashmapWithListOfCategories.get(duplicate))
-//					logger.info("{} ({})", duplicate, category);
 		}
 
 		else if(arg.equals("duplicates")) {
@@ -396,6 +390,9 @@ public class JsonParserApplication implements CommandLineRunner {
 		}
 		else if(arg.equals("multi-cat")) {
 			logger.info("Analyzed {} people present in more than one category", categories, multiCat);
+			List<String> sortedListOfNames = getListOfMultiCategoryPeopleOrderedByNumberOfCategories();
+			for(String duplicate : sortedListOfNames)
+				logger.info("{} ({})", duplicate, this.namesHashmapWithListOfCategories.get(duplicate).size());
 		}
 		else
 			logger.warn("Failed to interpret command");
@@ -426,6 +423,7 @@ public class JsonParserApplication implements CommandLineRunner {
 			sortedNames.add(Arrays.stream(e.toString().split("=")).toList().get(0));
 		}
 
+		Collections.reverse(sortedNames);
 		return sortedNames;
 	}
 
