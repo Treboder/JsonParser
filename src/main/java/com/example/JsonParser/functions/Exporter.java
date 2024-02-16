@@ -11,40 +11,27 @@ public class Exporter {
 
     private static Logger logger = LoggerFactory.getLogger(JsonParserApplication.class);
 
-    public static void processExportCommand(String command) {
-        // get file argument
-        String arg = "";
-        if(command.split("").length > 0) {
-            arg = command.split(" ")[1];
-        }
+    public static void processExportCommand() {
 
         int names = Analyzer.getInstance().getNamesHashmapWithListOfCategories().keySet().stream().toList().size();
         int categories = Analyzer.getInstance().getCategoryHashMap().keySet().stream().toList().size();
-        int multiCat = Analyzer.getInstance().getMultiCategoryPeopleList().size();
 
-        if(arg.equals("all")) {
-            logger.info("Export {} people with {} categories", names, categories);
-            DataSet dataset = new DataSet(Analyzer.getInstance().getCategoryHashMap());
-            logger.info(dataset.toJSON());
+        logger.info("Export {} people with {} categories", names, categories);
+        DataSet dataset = new DataSet(Analyzer.getInstance().getCategoryHashMap());
+        logger.debug(dataset.toJSON());
+
+        OutputStream out = null;
+        try {
+            out = new FileOutputStream(new File( Constants.DATA_OUTPUT_DIR + Constants.DATA_OUTPUT_FILE));
+            out.write(dataset.toJSON().getBytes());
+            out.close();
+            logger.info("Save {} ", Constants.DATA_OUTPUT_DIR + Constants.DATA_OUTPUT_FILE);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        if(arg.equals("disk")) {
-            logger.info("Save {} people with {} categories", names, categories);
-            DataSet dataset = new DataSet(Analyzer.getInstance().getCategoryHashMap());
 
-            OutputStream out = null;
-            try {
-                out = new FileOutputStream(new File( Constants.DATA_OUTPUT_DIR + "_data.json"));
-                out.write(dataset.toJSON().getBytes());
-                out.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-        else
-            logger.warn("Failed to interpret command");
 
     }
 

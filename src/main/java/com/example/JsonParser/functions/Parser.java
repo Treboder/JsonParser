@@ -82,7 +82,7 @@ public class Parser {
         return map;
     }
 
-    public static Category parseFileToCategory(String catID) throws IOException {
+    private static Category parseFileToCategory(String catID) throws IOException {
 
         String fileName = Constants.DATA_INPUT_DIR + catID + ".json";
         logger.debug("Read file {}",fileName);
@@ -136,7 +136,7 @@ public class Parser {
         return category;
     }
 
-    public static String parseJsonField(JsonObject personJSON, String fieldName) {
+    private static String parseJsonField(JsonObject personJSON, String fieldName) {
         String value = "n/a";
         try {
             value = personJSON.get(fieldName).getAsString();
@@ -153,7 +153,7 @@ public class Parser {
         }
     }
 
-    public static String readFromInputStream(InputStream inputStream) throws IOException {
+    private static String readFromInputStream(InputStream inputStream) throws IOException {
         StringBuilder resultStringBuilder = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;

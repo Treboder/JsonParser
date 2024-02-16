@@ -1,16 +1,21 @@
 
+# Commands
 
-parse a1
-parse all
+## parse
+- parse fileName
+- parse all
 
-get a1
-get all
+## get
+- get categoryID
+- get all
 
-show a1
-show all
-show multi-cat
-show duplicates
+## show
+- show categoryID
+- show all
+- show multi-cat
+- show duplicates
 
-count names
-count categories
-count multi-cat
+## count
+- count names
+- count categories
+- count multi-cat

@@ -1,6 +1,7 @@
 package com.example.JsonParser.functions;
 
 import com.example.JsonParser.objects.Category;
+import com.example.JsonParser.objects.DataSet;
 import com.example.JsonParser.objects.Person;
 import lombok.Getter;
 

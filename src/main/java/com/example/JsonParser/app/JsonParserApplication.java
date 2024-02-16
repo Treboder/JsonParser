@@ -55,7 +55,11 @@ public class JsonParserApplication implements CommandLineRunner {
 				Reporter.processCountCommand(userInput);
 			}
 			else if (userCmd.equals(Constants.exportCommand)) {
-				Exporter.processExportCommand(userInput);
+				Exporter.processExportCommand();
+			}
+			else if (userCmd.equals(Constants.importCommand)) {
+				DataSet data = Importer.processImportCommand();
+				Analyzer.getInstance().initialize(data.toHashMap());
 			}
 			else if (!userCmd.equals(Constants.exitCommand)){
 				logger.warn("Unknown command");

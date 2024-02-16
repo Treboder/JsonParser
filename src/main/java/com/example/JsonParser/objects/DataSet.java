@@ -11,13 +11,21 @@ import java.util.List;
 
 public class DataSet {
 
-    private List<Category> categories;
+    private List<Category> categories = new ArrayList<>();
+
+    public DataSet() {
+
+    }
 
     public DataSet(HashMap<String, Category> categoryHashMap) {
         this.categories = new ArrayList<>();
         for(String key : categoryHashMap.keySet().stream().sorted().toList()) {
             this.categories.add(categoryHashMap.get(key));
         }
+    }
+
+    public void addCategory(Category c) {
+        this.categories.add(c);
     }
 
     public String toJSON() {
@@ -28,6 +36,17 @@ public class DataSet {
         String prettyJsonString = gson.toJson(jsonElement);
         return prettyJsonString;
     }
+
+    public HashMap<String, Category> toHashMap() {
+        HashMap<String, Category> categoryHashMap = new HashMap<>();
+        for(Category c : this.categories)
+            categoryHashMap.put(c.getCategoryID(), c);
+
+        return categoryHashMap;
+    }
+
+
+
 
 
 }
