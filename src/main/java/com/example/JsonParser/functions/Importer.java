@@ -24,7 +24,7 @@ public class Importer {
         String fileName = Constants.DATA_OUTPUT_DIR + Constants.DATA_OUTPUT_FILE;
         logger.debug("Read file {}",fileName);
         InputStream inputStream = new FileInputStream(fileName);
-        String jsonString = readFromInputStream(inputStream);
+        String jsonString = Utils.readFromInputStream(inputStream);
 
         // get array of categories
         JsonArray jsonArray = null;
@@ -42,7 +42,7 @@ public class Importer {
             try {
                 jsonObject = jsonArray.get(i).getAsJsonObject();
                 String categoryJSON = jsonObject.toString();
-                Category categoryObject = parseCategory(categoryJSON);
+                Category categoryObject = parseJsonToCategory(categoryJSON);
                 data.addCategory(categoryObject);
                 logger.info("Import {} ({})", categoryObject.getCategoryID(), categoryObject.getCategoryName());
 
@@ -56,7 +56,7 @@ public class Importer {
         return data;
     }
 
-    public static Category parseCategory(String jsonString) throws IOException {
+    private static Category parseJsonToCategory(String jsonString) throws IOException {
 
         JsonObject jsonObject = null;
         try {
@@ -79,12 +79,12 @@ public class Importer {
             Person personObject = new Person();
 
             // parse personJSON
-            personObject.setId(parseJsonField(personJSON, "id"));
-            personObject.setName(parseJsonField(personJSON, "name"));
-            personObject.setBirthYear(parseJsonField(personJSON, "birthYear"));
-            personObject.setDeathYear(parseJsonField(personJSON, "deathYear"));
-            personObject.setHomeCountry(parseJsonField(personJSON, "homeCountry"));
-            personObject.setAchievements(parseJsonField(personJSON, "achievements"));
+            personObject.setId(Utils.parseJsonField(personJSON, "id"));
+            personObject.setName(Utils.parseJsonField(personJSON, "name"));
+            personObject.setBirthYear(Utils.parseJsonField(personJSON, "birthYear"));
+            personObject.setDeathYear(Utils.parseJsonField(personJSON, "deathYear"));
+            personObject.setHomeCountry(Utils.parseJsonField(personJSON, "homeCountry"));
+            personObject.setAchievements(Utils.parseJsonField(personJSON, "achievements"));
 
             // parse keywords
             try {
@@ -104,32 +104,5 @@ public class Importer {
         return category;
     }
 
-    private static String parseJsonField(JsonObject personJSON, String fieldName) {
-        String value = "n/a";
-        try {
-            value = personJSON.get(fieldName).getAsString();
-            return value;
-        } catch (Exception e) {
-            if(fieldName.equals("DeathYear")) {
-                logger.debug("Failed to parse field {} from {}", fieldName, personJSON);
-                return value;
-            }
-            else {
-                logger.error("Failed to parse field {} from {}", fieldName, personJSON);
-                return value;
-            }
-        }
-    }
-
-    private static String readFromInputStream(InputStream inputStream) throws IOException {
-        StringBuilder resultStringBuilder = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                resultStringBuilder.append(line).append("\n");
-            }
-        }
-        return resultStringBuilder.toString();
-    }
 
 }

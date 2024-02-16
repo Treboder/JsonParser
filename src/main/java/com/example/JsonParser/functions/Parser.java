@@ -87,7 +87,7 @@ public class Parser {
         String fileName = Constants.DATA_INPUT_DIR + catID + ".json";
         logger.debug("Read file {}",fileName);
         InputStream inputStream = new FileInputStream(fileName);
-        String jsonString = readFromInputStream(inputStream);
+        String jsonString = Utils.readFromInputStream(inputStream);
 
         logger.debug("Start parsing {}", fileName);
 
@@ -111,12 +111,12 @@ public class Parser {
             Person personObject = new Person();
 
             // parse personJSON
-            personObject.setId(parseJsonField(personJSON, "Number"));
-            personObject.setName(parseJsonField(personJSON, "Name"));
-            personObject.setBirthYear(parseJsonField(personJSON, "BirthYear"));
-            personObject.setDeathYear(parseJsonField(personJSON, "DeathYear"));
-            personObject.setHomeCountry(parseJsonField(personJSON, "HomeCountry"));
-            personObject.setAchievements(parseJsonField(personJSON, "Achievements"));
+            personObject.setId(Utils.parseJsonField(personJSON, "Number"));
+            personObject.setName(Utils.parseJsonField(personJSON, "Name"));
+            personObject.setBirthYear(Utils.parseJsonField(personJSON, "BirthYear"));
+            personObject.setDeathYear(Utils.parseJsonField(personJSON, "DeathYear"));
+            personObject.setHomeCountry(Utils.parseJsonField(personJSON, "HomeCountry"));
+            personObject.setAchievements(Utils.parseJsonField(personJSON, "Achievements"));
 
             // parse keywords
             try {
@@ -136,33 +136,6 @@ public class Parser {
         return category;
     }
 
-    private static String parseJsonField(JsonObject personJSON, String fieldName) {
-        String value = "n/a";
-        try {
-            value = personJSON.get(fieldName).getAsString();
-            return value;
-        } catch (Exception e) {
-            if(fieldName.equals("DeathYear")) {
-                logger.debug("Failed to parse field {} from {}", fieldName, personJSON);
-                return value;
-            }
-            else {
-                logger.error("Failed to parse field {} from {}", fieldName, personJSON);
-                return value;
-            }
-        }
-    }
-
-    private static String readFromInputStream(InputStream inputStream) throws IOException {
-        StringBuilder resultStringBuilder = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                resultStringBuilder.append(line).append("\n");
-            }
-        }
-        return resultStringBuilder.toString();
-    }
 
 
 }
