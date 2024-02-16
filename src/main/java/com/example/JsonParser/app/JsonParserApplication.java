@@ -316,6 +316,8 @@ public class JsonParserApplication implements CommandLineRunner {
 			if(this.categoryHashMap.containsKey(arg)) {
 				Category c = this.categoryHashMap.get(arg);
 				logger.info("Get {} ({})  ", arg, c.getCategoryName());
+				for(Person p : c.getPeople())
+					logger.info("Show {}", p);
 			}
 			else
 				logger.warn("Cant find {}", arg);
@@ -333,9 +335,16 @@ public class JsonParserApplication implements CommandLineRunner {
 		if(arg.equals("all")) {
 			for(String categoryID : categoryHashMap.keySet().stream().sorted().toList()) {
 				Category c = categoryHashMap.get(categoryID);
-				logger.info("Get {} ({}) with {} people", categoryID, c.getCategoryName(), c.getPeople().length);
-				for(Person p : c.getPeople())
-					logger.info("Show {}", p);
+				logger.info("Show {} ({}) with {} people", categoryID, c.getCategoryName(), c.getPeople().length);
+				for(Person p : c.getPeople()) {
+					logger.info("------------------------------------------------------");
+					logger.info("Name: {}", p);
+					logger.info("Achievements: {}", p.getAchievements());
+					logger.info("BirthYear: {}", p.getBirthYear());
+					logger.info("DeathYear: {}", p.getDeathYear());
+					logger.info("HomeCountry: {}", p.getHomeCountry());
+					logger.info("KeyWords: {}", Arrays.stream(p.getKeyWords()).toList());
+				}
 			}
 		}
 
@@ -361,9 +370,16 @@ public class JsonParserApplication implements CommandLineRunner {
 			// get certain category parsed
 			if(categoryHashMap.containsKey(arg)) {
 				Category c = categoryHashMap.get(arg);
-				logger.info("Get {} ({}) with {} people", arg, c.getCategoryName(), this.categoryHashMap.get(arg).getPeople().length);
-				for(Person p : c.getPeople())
-					logger.info("Show {}", p);
+				logger.info("Show {} ({}) with {} people", arg, c.getCategoryName(), this.categoryHashMap.get(arg).getPeople().length);
+				for(Person p : c.getPeople()) {
+					logger.info("------------------------------------------------------");
+					logger.info("Name: {}", p);
+					logger.info("Achievements: {}", p.getAchievements());
+					logger.info("BirthYear: {}", p.getBirthYear());
+					logger.info("DeathYear: {}", p.getDeathYear());
+					logger.info("HomeCountry: {}", p.getHomeCountry());
+					logger.info("KeyWords: {}", Arrays.stream(p.getKeyWords()).toList());
+				}
 			}
 			else
 				logger.warn("Cant find {}", arg);
